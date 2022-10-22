@@ -23,7 +23,7 @@ COPY testsuite/unit/bin /bin
 COPY testsuite/unit/luacov.lua /.luacov
 COPY testsuite/unit/output.lua /output.lua
 COPY src /
-COPY testsuite/unit/burst_buffer/test.lua /
+COPY testsuite/unit/src/burst_buffer/test.lua /
 
 ARG IGNORE_TEST_FAILURE=false
 RUN busted -o output.lua -Xoutput junit.xml --verbose --coverage test.lua || \
