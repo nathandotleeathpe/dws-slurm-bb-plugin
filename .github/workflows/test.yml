@@ -42,14 +42,14 @@ jobs:
           name: unit-test-results
           path: test_artifacts
 
-      - name: Check Unit Tests
-        if: ${{ always() }}
-        uses: scacap/action-surefire-report@v1
-        with: 
-          fail_on_test_failures: true
-          fail_if_no_tests: true
-          skip_publishing: true
-          report_paths: test_artifacts/**/*.junit.xml
+      # - name: Check Unit Tests
+      #   if: ${{ always() }}
+      #   uses: scacap/action-surefire-report@v1
+      #   with: 
+      #     fail_on_test_failures: true
+      #     fail_if_no_tests: true
+      #     skip_publishing: true
+      #     report_paths: test_artifacts/**/*.junit.xml
 
       - name: Unit Test Artifacts
         run: docker buildx build
