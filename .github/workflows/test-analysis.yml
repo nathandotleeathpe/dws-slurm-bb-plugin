@@ -36,14 +36,15 @@ jobs:
                owner: context.repo.owner,
                repo: context.repo.repo,
                artifact_id: matchArtifactEventFile.id,
+               archive_format: 'zip',
             });
             let fs = require('fs');
             fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/unit-test-results.zip`, Buffer.from(downloadTestResults.data));
-            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/event.json`, Buffer.from(downloadEventFile.data));
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/event.json.zip`, Buffer.from(downloadEventFile.data));
 
 
-      - name: 'Unzip artifact'
-        run: unzip unit-test-results.zip
+      - name: 'Unzip artifacts'
+        run: unzip unit-test-results.zip && unzip event.json.zip && ls
         
       - name: Analyze Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
