@@ -6,9 +6,9 @@ on:
       - "main"
 
 jobs:
-  build:
+  deploy:
     name: Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: "Build"
-        uses: ./.github/workflows/build.yml
+      - name: "Test"
+        uses: ./.github/workflows/test.yml
