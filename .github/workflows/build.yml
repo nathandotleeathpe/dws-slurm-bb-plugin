@@ -15,6 +15,18 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
+      - name: Check secrets presence
+        id: checkprpat
+        shell: bash
+        run: |
+          if [ "$PR_COMMENT_PAT" == "" ]; then
+            echo ::set-output name=present::false
+          else
+            echo ::set-output name=present::true
+          fi
+        env:
+          PR_COMMENT_PAT: ${{ secrets.PR_COMMENT_PAT}}
+
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -71,6 +83,13 @@ jobs:
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && !${{ steps.checkprpat.outputs.present }}
         with:
           path: code-coverage-results.md
+
+      - name: Add Coverage PR Comment (PAT)
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request' && ${{ steps.checkprpat.outputs.present }}
+        with:
+          path: code-coverage-results.md
+          GITHUB_TOKEN: ${{ secrets.PR_COMMENT_PAT }}
