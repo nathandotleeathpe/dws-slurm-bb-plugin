@@ -11,9 +11,26 @@ jobs:
     name: Test Analysis
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - name: 'Download artifact'
+        uses: actions/github-script@v6
         with:
-          name: unit-test-results
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifact = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "unit-test-results"
+            })[0];
+            let download = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifact.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/pr_number.zip`, Buffer.from(download.data));
         
       - name: Analyze Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
