@@ -3,6 +3,8 @@ name: Test Analysis
 on:
   workflow_run:
     workflows: [Test]
+    types:
+      - completed
 
 jobs:
   test:
