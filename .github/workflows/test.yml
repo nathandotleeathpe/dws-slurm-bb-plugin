@@ -22,6 +22,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
+      - name: Publish Event File
+        uses: actions/upload-artifact@v2
+        with:
+          name: event-file
+          path: ${{ github.event_path }}
+
       - name: Unit Tests
         run: docker buildx build
             --target testresults
@@ -74,9 +80,3 @@ jobs:
         with:
           name: unit-test-results
           path: test_artifacts
-
-      - name: Publish Event File
-        uses: actions/upload-artifact@v2
-        with:
-          name: event-file
-          path: ${{ github.event_path }}
