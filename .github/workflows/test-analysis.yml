@@ -63,7 +63,7 @@ jobs:
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
-        if: ${{ "$TEST_PR_NUMBER" != "" }}
+        if: ${{ env.TEST_PR_NUMBER != "" }}
         with:
           path: code-coverage-results.md
 
