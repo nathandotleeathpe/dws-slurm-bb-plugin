@@ -11,31 +11,59 @@ jobs:
     name: Test Analysis
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v3
+      - name: 'Download artifacts'
+        uses: actions/github-script@v6
         with:
-          name: unit-test-results
+          script: |
+            let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               run_id: context.payload.workflow_run.id,
+            });
+            let matchArtifactTestResults = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "unit-test-results"
+            })[0];
+            let matchArtifactEventFile = allArtifacts.data.artifacts.filter((artifact) => {
+              return artifact.name == "event-file"
+            })[0];
+            let downloadTestResults = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifactTestResults.id,
+               archive_format: 'zip',
+            });
+            let downloadEventFile = await github.rest.actions.downloadArtifact({
+               owner: context.repo.owner,
+               repo: context.repo.repo,
+               artifact_id: matchArtifactEventFile.id,
+               archive_format: 'zip',
+            });
+            let fs = require('fs');
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/unit-test-results.zip`, Buffer.from(downloadTestResults.data));
+            fs.writeFileSync(`${process.env.GITHUB_WORKSPACE}/event.json.zip`, Buffer.from(downloadEventFile.data));
+
+
+      - name: Unzip artifacts
+        run: unzip unit-test-results.zip && unzip event.json.zip
         
       - name: Analyze Test Results
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
           junit_files: "unittest.junit.xml"
-      
-      - name: Analyze Coverage Results
-        uses: irongut/CodeCoverageSummary@v1.3.0
-        with:
-          filename: "coverage.cobertura.xml"
-          badge: true
-          fail_below_min: true
-          format: markdown
-          hide_branch_rate: false
-          hide_complexity: true
-          indicators: true
-          output: both
-          thresholds: '80 85'
+          commit: ${{ github.event.workflow_run.head_sha }}
+          event_file: event.json
+          event_name: ${{ github.event.workflow_run.event }}
+
+      - name: Get PR Number
+        if: $TEST_EVENT == 'pull_request'
+        run: |
+          NUM="$(jq -r ".number" event.json)"
+          echo "TEST_PR_NUMBER=$NUM" >> $GITHUB_ENV 
 
       - name: Add Coverage PR Comment
         uses: marocchino/sticky-pull-request-comment@v2
-        if: github.event_name == 'pull_request'
+        if: ${{ "$TEST_PR_NUMBER" != "" }}
         with:
           path: code-coverage-results.md
+
