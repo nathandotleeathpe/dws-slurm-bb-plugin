@@ -56,7 +56,6 @@ jobs:
           event_name: ${{ github.event.workflow_run.event }}
 
       - name: Get PR Number
-        if: $TEST_EVENT == 'pull_request'
         run: |
           NUM="$(jq -r ".number" event.json)"
           echo "TEST_PR_NUMBER=$NUM" >> $GITHUB_ENV 
